@@ -103,7 +103,7 @@ Controllers adaptam HTTP, ProductService coordena casos de uso e transações, m
 
 O workflow `.github/workflows/ci.yml` executa `npm ci`, lint e testes com cobertura, usando um PostgreSQL descartável próprio. Publica o relatório de cobertura como artefato. Os valores de teste no workflow são exclusivos do serviço efêmero de CI.
 
-**Pendente:** publicar este projeto no repositório GT4 e registrar o link da execução verde no GitHub Actions. A validação local não substitui essa evidência.
+**CI verde confirmado em 12/11/2026:** [execução 43164568035](https://github.com/PauloVianaTech/projeto-backend-gt4/actions/runs/43164568035), no commit `5f7f0e1`: instalação, lint e 47 testes aprovados, com cobertura global acima dos mínimos. O relatório de cobertura está disponível como artefato nessa execução.
 
 Para Moodle até 13/11/2026: link do repositório acessível ao professor, link do CI verde, README, `docs/desempenho.md` e `CONTRIBUTORS.md`. Incluir `docs/ia.md` conforme orientação do curso.
 

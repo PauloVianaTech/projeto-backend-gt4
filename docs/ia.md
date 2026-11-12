@@ -22,4 +22,4 @@ Preparados Compose, testes de regras do catálogo, workflow de CI, lint, logs JS
 - Validar o fluxo autenticado real no container e executar k6 com 21 produtos.
 - Ampliar a cobertura de regras isoladas para todos os arquivos src e declarar mínimos globais.
 
-Resultado: lint e 47 testes aprovados; cobertura de linhas 82,43% e ramos 66,5%. Smoke k6 com 30 requisições, zero falhas e p95 9,05 ms. Os números foram obtidos por execução, não estimados. Publicação e CI remoto continuam pendentes.
+Resultado: lint e 47 testes aprovados; cobertura de linhas 82,43% e ramos 66,5%. Smoke k6 com 30 requisições, zero falhas e p95 9,05 ms. Os números foram obtidos por execução, não estimados. Posteriormente, o projeto foi publicado e a execução remota 43164568035 confirmou instalação, lint e 47 testes aprovados.

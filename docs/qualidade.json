@@ -42,5 +42,11 @@
                                       }
                  },
     "lint":  "passed",
-    "remoteCI":  "pending"
+    "remoteCI":  {
+                     "conclusion":  "success",
+                     "url":  "https://github.com/PauloVianaTech/projeto-backend-gt4/actions/runs/43164568035",
+                     "commit":  "5f7f0e13594a73c42189021f46bf908000dd9d55",
+                     "testsPassed":  47,
+                     "suitesPassed":  5
+                 }
 }

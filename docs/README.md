@@ -9,4 +9,4 @@
 - `apresentacao.md`: roteiro de defesa.
 - `retomada.md`: estado e pendências de publicação.
 
-CI remoto ainda precisa ser executado e seu link incluído na entrega. Não confundir o sucesso local com a execução no GitHub Actions.
+CI remoto validado em 12/11/2026: [execução verde 43164568035](https://github.com/PauloVianaTech/projeto-backend-gt4/actions/runs/43164568035). O texto pronto para o Moodle está em entrega.md.

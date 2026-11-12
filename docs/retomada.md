@@ -10,12 +10,12 @@ Fluxo de cadastro, login, categoria, produto, atualização e filtro JSONB passo
 Configurações .env, .env.test e .env.demo estão ignoradas pelo Git. A base GT3 original permanece separada.
 
 ## Ainda necessário
-- Criar ou identificar repositório remoto GT4, publicar os commits e obter CI verde.
-- Incluir link da execução verde no README e na entrega do Moodle até 13/11/2026.
+- Publicação concluída: https://github.com/PauloVianaTech/projeto-backend-gt4. CI verde: https://github.com/PauloVianaTech/projeto-backend-gt4/actions/runs/43164568035.
+- README já contém o CI verde. Enviar os links e o texto de docs/entrega.md pelo Moodle até 13/11/2026.
 - O professor precisa ter acesso ao repositório.
 - Revisar o roteiro de apresentação e compreender as decisões; apresentação opcional ao vivo em 16/11 ou vídeo no prazo de entrega.
 
 ## Limitações registradas
 Testes herdados parcialmente encadeados; sync do Sequelize em lugar de migrations. Triagem anterior de dependências: 30 alertas, incluindo 6 altos; correção automática não autorizada. Nenhuma aplicação forçada de audit fix foi realizada.
 
-A entrega não está concluída enquanto faltarem publicação e evidência do CI remoto.
+A implementação está publicada e validada. O envio pelo Moodle depende do aluno; não foi realizado pelo assistente.
