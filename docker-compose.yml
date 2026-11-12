@@ -1,0 +1,71 @@
+name: catalogo-gt4
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: catalogo
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD no .env}
+      POSTGRES_DB: catalogo_gt4
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalogo -d catalogo_gt4"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  api:
+    build: .
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_DIALECT: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: catalogo
+      DB_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD no .env}
+      DB_NAME: catalogo_gt4
+      DB_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET:?Configure JWT_SECRET no .env}
+      JWT_EXPIRES_IN: 1d
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-admin@exemplo.com}
+      PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  db-test:
+    image: postgres:18-alpine
+    profiles: ["test"]
+    environment:
+      POSTGRES_USER: catalogo_test
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD:?Configure TEST_DB_PASSWORD no .env}
+      POSTGRES_DB: catalogo_gt4_test
+    ports:
+      - "127.0.0.1:5434:5432"
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalogo_test -d catalogo_gt4_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  k6:
+    image: grafana/k6@sha256:3e4186aea62e11a45560bfc51e19eeafe82fc07ce069c78aff44b7ff893d9a5e
+    profiles: ["performance"]
+    environment:
+      BASE_URL: http://api:3001
+    volumes:
+      - ./load:/scripts:ro
+      - ./docs:/results
+    command: ["run", "--summary-export=/results/k6-summary.json", "/scripts/smoke.js"]
+    depends_on:
+      api:
+        condition: service_healthy
+volumes:
+  postgres_data:

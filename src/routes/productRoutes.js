@@ -108,11 +108,11 @@ router.get('/:id', productController.getById);
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               nome:
  *                 type: string
  *               slug:
  *                 type: string
- *               price:
+ *               preco:
  *                 type: number
  *               price_with_discount:
  *                 type: number
@@ -184,7 +184,7 @@ router.post('/', authMiddleware, adminOnly, productController.create);
  *           schema:
  *             type: object
  *             properties:
- *               name:
+ *               nome:
  *                 type: string
  *               images:
  *                 type: array

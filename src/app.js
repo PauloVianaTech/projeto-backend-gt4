@@ -1,3 +1,4 @@
+const { observe, registry } = require('./observability');
 require('dotenv').config();
 require('./database');
 
@@ -5,7 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerDocs = require('./config/openapi');
 const swaggerUi = require('swagger-ui-express');
 
 const userRoutes = require('./routes/userRoutes');
@@ -40,6 +41,11 @@ class App {
     this.server = express();
     this.server.set('trust proxy', 1);
     this.server.disable('x-powered-by');
+    this.server.use(observe);
+    this.server.get('/metrics', async (_req, res) => {
+      res.set('Content-Type', registry.contentType);
+      res.send(await registry.metrics());
+    });
     this.middlewares();
     this.swaggerConfig();
     this.routes();
@@ -63,35 +69,6 @@ class App {
   }
 
   swaggerConfig() {
-    const serverUrl = process.env.PUBLIC_API_URL || `http://localhost:${process.env.PORT || 3001}`;
-    const swaggerOptions = {
-      swaggerDefinition: {
-        openapi: '3.0.0',
-        info: {
-          title: 'API Geração Tech 3.0',
-          version: '1.0.0',
-          description: 'Documentação do projeto de E-commerce Final',
-        },
-        servers: [
-          {
-            url: serverUrl,
-            description: process.env.NODE_ENV === 'production' ? 'Servidor de produção' : 'Servidor local',
-          },
-        ],
-        components: {
-          securitySchemes: {
-            bearerAuth: {
-              type: 'http',
-              scheme: 'bearer',
-              bearerFormat: 'JWT',
-            },
-          },
-        },
-      },
-      apis: ['./src/routes/*.js'],
-    };
-
-    const swaggerDocs = swaggerJsDoc(swaggerOptions);
     this.server.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
   }
 

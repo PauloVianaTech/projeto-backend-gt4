@@ -1,145 +1,107 @@
-# Backend GT3
+Projeto B — Geração Tech 4.0 Full Cycle
 
-API REST de e-commerce desenvolvida com Node.js, Express, PostgreSQL e Sequelize. O projeto organiza o código em camadas e fornece autenticação JWT, catálogo de produtos, documentação Swagger e testes de integração.
+# API de catálogo GT4
 
-## Recursos
+API de domínio único para gerenciar catálogo de produtos, com categorias e autenticação administrativa de apoio. Evolução individual do [backend GT3](https://github.com/PauloVianaTech/projeto-backend-gt3), com histórico preservado.
 
-- Arquitetura em camadas: controllers, services, models, routes, middleware e database.
-- Cadastro, consulta, atualização e exclusão de usuários, categorias e produtos.
-- Autenticação com JWT e senhas protegidas com bcryptjs.
-- Produtos com categorias, imagens, opções, marca, gênero, estado e preços com desconto.
-- Busca de produtos por texto, categoria e faixa de preço.
-- Rotas protegidas por Bearer Token.
-- Documentação interativa com Swagger em `/api-docs`.
-- Seed idempotente para criar o catálogo de demonstração com imagens únicas.
-- Testes de API com Jest e Supertest para usuários, categorias e produtos.
+Fluxo principal: cadastrar usuário administrador, autenticar, criar categoria e produto, consultar e atualizar o produto. Sem pedidos, pagamentos ou frontend na entrega.
 
-## Tecnologias
+## Subir a aplicação
 
-- Node.js
-- Express
-- PostgreSQL
-- Sequelize
-- JSON Web Token
-- bcryptjs
-- Swagger
-- Jest e Supertest
-- dotenv e Nodemon
+Pré-requisitos: Docker Desktop com motor Linux em execução, Docker Compose e Node.js 22.13 ou superior. Depois de obter o repositório, entre em sua pasta e gere a configuração local uma única vez:
 
-## Requisitos
-
-- Node.js 20 ou superior
-- npm
-- PostgreSQL
-
-## Instalação
-
-```bash
-git clone https://github.com/PauloVianaTech/projeto-backend-gt3.git
-cd projeto-backend-gt3
-npm install
+```sh
+node scripts/setup-local.js
 ```
 
-## Configuração
+Esse comando cria `.env` e `.env.test` com segredos aleatórios; não sobrescreve arquivos existentes. Como alternativa, preencha os arquivos de exemplo manualmente.
 
-Copie o arquivo de exemplo e preencha as credenciais do PostgreSQL:
+Com a configuração pronta, a aplicação sobe com um comando:
 
-```bash
-cp .env.example .env
+```sh
+docker compose up --build -d --wait
 ```
 
-```dotenv
-PORT=3001
-DB_DIALECT=postgres
-DB_HOST=localhost
-DB_USER=seu_usuario
-DB_PASSWORD=sua_senha
-DB_NAME=backend_gt3
-JWT_SECRET=substitua_por_uma_chave_secreta_aleatoria
-JWT_EXPIRES_IN=1d
+- API: http://localhost:3001
+- Saúde do processo: http://localhost:3001/health
+- Swagger: http://localhost:3001/api-docs
+- Métricas: http://localhost:3001/metrics
+
+O banco da aplicação tem volume persistente e não expõe porta no host. A API é exposta apenas em localhost. Para encerrar sem apagar dados: `docker compose down`.
+
+## Dados e demonstração
+
+```sh
+docker compose exec -T api npm run seed
+npm ci
+npm run demo
 ```
 
-Crie antes o banco definido em `DB_NAME`. Ao iniciar, o Sequelize sincroniza os modelos com `sync({ alter: true })`.
+O seed é idempotente e cria 20 produtos. A demonstração cria um usuário permitido por `ADMIN_EMAILS`, autentica, cadastra categoria e produto, atualiza estoque e valida a consulta com filtro JSONB. Salva os resultados em `docs/validacao-fluxo.json`, sem senha ou token.
 
-## Execução
+A senha demonstrativa fica exclusivamente no arquivo local `.env.demo`, ignorado pelo Git. Para testar operações protegidas no Swagger, autentique em `POST /v1/usuario/token` e use o JWT em Authorize. Não publique arquivos `.env*` preenchidos.
 
-```bash
-npm run dev
+## Testes e cobertura
+
+O banco exclusivo de testes é temporário e usa a porta 5434, separada da aplicação:
+
+```sh
+docker compose --profile test up -d --wait db-test
+npm ci
+npm run lint
+npm run test:coverage
 ```
 
-A API estará disponível em `http://localhost:3001`.
+Os testes recriam tabelas somente no banco local terminado em `_test`. O arquivo `.env.test` gerado pelo setup já corresponde ao serviço `db-test`. Em configuração manual, use o mesmo valor de `TEST_DB_PASSWORD` do `.env`.
 
-Para iniciar sem Nodemon:
+Para executar apenas testes unitários, sem banco: `npm run test:unit`.
 
-```bash
-npm start
+Cobertura coletada sobre **todos os arquivos `src/**/*.js`**, incluindo inicialização. Mínimos globais exigidos no Jest e no CI:
+
+| Instruções | Ramos | Funções | Linhas |
+| --- | --- | --- | --- |
+| 75% | 60% | 75% | 75% |
+
+Validação local em 12/11/2026: **47 testes passaram em 5 suítes**. Cobertura: 80,36% de instruções, 66,5% de ramos, 82,85% de funções e 82,43% de linhas. As regras isoladas do domínio tiveram 100% de cobertura. Relatório HTML em `coverage/lcov-report/index.html`; resumo em `docs/qualidade.json`.
+
+## Desempenho
+
+```sh
+docker compose --profile performance run --rm k6
 ```
 
-## Catálogo de demonstração
+A imagem k6 está fixada pelo digest da execução validada. O smoke test usa uma pessoa virtual por 30 segundos, com pausa de um segundo. Valida status, formato da listagem, falhas abaixo de 1% e p95 abaixo de 500 ms.
 
-Depois de configurar o banco, crie ou atualize o catálogo de demonstração:
+Resultado local em 12/11/2026 com 21 produtos: **30 requisições, 0% de falhas, 60 verificações aprovadas e p95 de 9,05 ms**. Detalhes e limites da medição em [docs/desempenho.md](docs/desempenho.md). Não é teste de capacidade máxima.
 
-```bash
-npm run seed
-```
+## Logs, métrica e SLO
 
-O comando pode ser executado mais de uma vez sem duplicar produtos. Ele cria categorias e produtos de tênis, camisetas, calças, bonés e headphones.
+Logs JSON por requisição incluem identificador, método, rota, status e duração. Não registram corpo, senha, JWT ou cabeçalhos de autorização. Consulte com `docker compose logs api`.
 
-## Rotas principais
+O histograma Prometheus `http_request_duration_seconds` expõe duração por método, rota e status em `/metrics`; contador e buckets permitem acompanhar latência e respostas. A meta declarada para a listagem é 99% de respostas sem erro de servidor e 95% abaixo de 500 ms em 30 dias. Essa meta não é comprovada por um smoke test de 30 segundos.
 
-| Recurso | Rotas públicas | Rotas protegidas |
-| --- | --- | --- |
-| Usuários | `POST /v1/usuario`, `POST /v1/usuario/token`, `GET /v1/usuario/:id` | `PUT /v1/usuario/:id`, `DELETE /v1/usuario/:id` |
-| Categorias | `GET /v1/categoria/pesquisa`, `GET /v1/categoria/:id` | `POST`, `PUT` e `DELETE /v1/categoria/:id` |
-| Produtos | `GET /v1/produto/pesquisa`, `GET /v1/produto/:id` | `POST`, `PUT` e `DELETE /v1/produto/:id` |
+## Design e documentação
 
-Use `POST /v1/usuario/token` para obter um JWT. Nas operações protegidas, envie o cabeçalho:
+Controllers adaptam HTTP, ProductService coordena casos de uso e transações, models encapsulam persistência e `src/domain` contém regras puras. O padrão Service Layer e a alternativa descartada estão justificados no [ADR 0001](docs/adr/0001-evolucao-catalogo.md). A separação demonstra responsabilidade única; os limites da dependência concreta do ORM estão documentados.
 
-```http
-Authorization: Bearer <token>
-```
+- [OpenAPI](docs/openapi.yaml): contrato gerado e também utilizado pelo Swagger. Para atualizar: `npm run docs:export`.
+- [Contribuições e origem](CONTRIBUTORS.md).
+- [Uso de IA](docs/ia.md).
+- [Roteiro de apresentação](docs/apresentacao.md).
+- [Estado da entrega](docs/retomada.md).
 
-## Swagger
+## Integração contínua e entrega
 
-Com a API em execução, acesse:
+O workflow `.github/workflows/ci.yml` executa `npm ci`, lint e testes com cobertura, usando um PostgreSQL descartável próprio. Publica o relatório de cobertura como artefato. Os valores de teste no workflow são exclusivos do serviço efêmero de CI.
 
-[http://localhost:3001/api-docs](http://localhost:3001/api-docs)
+**Pendente:** publicar este projeto no repositório GT4 e registrar o link da execução verde no GitHub Actions. A validação local não substitui essa evidência.
 
-Os caminhos documentados já incluem o prefixo `/v1`. Use **Authorize** para informar o JWT antes de testar uma rota protegida.
+Para Moodle até 13/11/2026: link do repositório acessível ao professor, link do CI verde, README, `docs/desempenho.md` e `CONTRIBUTORS.md`. Incluir `docs/ia.md` conforme orientação do curso.
 
-## Testes
+## Limitações conhecidas
 
-Os testes usam um banco separado porque recriam as tabelas. Copie o exemplo e configure um banco local com nome terminado em `_test`:
-
-```bash
-cp .env.test.example .env.test
-npm test
-```
-
-O arquivo `.env.test` não é enviado ao Git. O PostgreSQL deve estar disponível, mas não é necessário iniciar o servidor com `npm run dev`.
-
-## Estrutura
-
-```text
-src/
-├── config/        # Configurações
-├── controllers/   # Requisições e respostas
-├── database/      # Conexão e inicialização dos modelos
-├── middleware/    # Autenticação JWT
-├── models/        # Modelos Sequelize
-├── routes/        # Rotas e anotações Swagger
-├── services/      # Regras de negócio
-├── app.js         # Express, Swagger e rotas
-└── server.js      # Inicialização do servidor
-scripts/
-└── seed.js        # Catálogo de demonstração
-tests/             # Testes de integração
-```
-
-## Frontend integrado
-
-O frontend deste projeto está em [E-commerce Drip Store](https://github.com/PauloVianaTech/ecommerce-drip-store).
+O foco é uma entrega acadêmica local. Há testes de integração herdados que ainda dependem da sequência de cenários, e a sincronização do Sequelize ainda substitui um processo de migrations versionadas. A triagem anterior do npm audit reportou 30 alertas de dependências, incluindo 6 altos; a correção automática não foi autorizada e não foi aplicada. Nenhuma auditoria de segurança completa é declarada.
 
 ## Licença
 
-ISC.
+ISC, preservada da base GT3.

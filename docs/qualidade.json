@@ -1,0 +1,46 @@
+{
+    "date":  "2026-11-12",
+    "testSuites":  5,
+    "testsPassed":  47,
+    "scope":  "src/**/*.js",
+    "thresholds":  {
+                       "functions":  75,
+                       "lines":  75,
+                       "branches":  60,
+                       "statements":  75
+                   },
+    "coverage":  {
+                     "lines":  {
+                                   "total":  410,
+                                   "covered":  338,
+                                   "skipped":  0,
+                                   "pct":  82.43
+                               },
+                     "statements":  {
+                                        "total":  438,
+                                        "covered":  352,
+                                        "skipped":  0,
+                                        "pct":  80.36
+                                    },
+                     "functions":  {
+                                       "total":  70,
+                                       "covered":  58,
+                                       "skipped":  0,
+                                       "pct":  82.85
+                                   },
+                     "branches":  {
+                                      "total":  206,
+                                      "covered":  137,
+                                      "skipped":  0,
+                                      "pct":  66.5
+                                  },
+                     "branchesTrue":  {
+                                          "total":  0,
+                                          "covered":  0,
+                                          "skipped":  0,
+                                          "pct":  100
+                                      }
+                 },
+    "lint":  "passed",
+    "remoteCI":  "pending"
+}

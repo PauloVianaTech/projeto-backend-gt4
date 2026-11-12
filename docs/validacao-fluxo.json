@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-11-12T05:42:37.758Z",
+  "base": "http://127.0.0.1:3001",
+  "steps": [
+    {
+      "method": "POST",
+      "route": "/v1/usuario",
+      "status": 201,
+      "existingAccount": false
+    },
+    {
+      "method": "POST",
+      "route": "/v1/usuario/token",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/v1/categoria/pesquisa?limit=-1",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/v1/categoria",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "route": "/v1/categoria/pesquisa?limit=-1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/v1/produto/pesquisa?match=demo-gt4",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "route": "/v1/produto",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "route": "/v1/produto/pesquisa?match=demo-gt4",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "route": "/v1/produto/21",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "route": "/v1/produto/21",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "route": "/v1/produto/pesquisa?option%5B1%5D=azul",
+      "status": 200
+    }
+  ],
+  "result": "passed"
+}

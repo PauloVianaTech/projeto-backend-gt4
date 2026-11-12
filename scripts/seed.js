@@ -35,7 +35,7 @@ const productImages = {
   'headphone-drip-mini': 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80',
 };
 (async () => {
-  await database.connection.sync({ alter: true });
+  await database.connection.sync();
   let created = 0;
   for (const [slug, categoryData] of Object.entries(catalog)) {
     const [category] = await Category.findOrCreate({ where: { slug }, defaults: { nome: categoryData.nome, slug, use_in_menu: true } });

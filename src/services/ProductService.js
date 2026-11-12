@@ -1,28 +1,22 @@
+const { logger } = require('../observability');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const ProductImage = require('../models/ProductImage');
 const ProductOption = require('../models/ProductOption');
 const { Op, Sequelize } = require('sequelize');
 
-const getImageUrl = (image) => {
-  const content = typeof image?.content === 'string' ? image.content.trim() : '';
-
-  if (!/^https?:\/\//i.test(content)) {
-    throw new Error('Cada imagem deve informar uma URL pública iniciada por http:// ou https://.');
-  }
-
-  return content;
-};
+const { imageUrl: getImageUrl, pagination } = require('../domain/productRules');
 
 class ProductService {
   /**
    * Realiza uma busca complexa por produtos com base em query params.
    */
   async search(query) {
-    const { limit = 12, page = 1, fields, match, category_ids, 'price-range': priceRange } = query;
+    const { fields, match, category_ids, 'price-range': priceRange } = query;
+    const { limit, page } = pagination(query);
     const findOptions = { where: {}, include: [], distinct: true }; // Adicionado distinct para evitar duplicatas
 
-    if (limit !== '-1') {
+    if (limit !== -1) {
         findOptions.limit = parseInt(limit);
         findOptions.offset = (parseInt(page) - 1) * parseInt(limit);
     }
@@ -47,24 +41,31 @@ class ProductService {
         findOptions.where.price_with_discount = { [Op.between]: [min, max] };
     }
     
-    for (const key in query) {
-        if (key.startsWith('option[')) {
-            const optionId = key.match(/\[(\d+)\]/)[1];
-            const optionValues = query[key].split(',');
-            findOptions.include.push({
-                model: ProductOption, as: 'options',
-                where: {
-                    id: optionId,
-                    valores_do_produto: {
-                        [Op.and]: optionValues.map(val => Sequelize.where(
-                            Sequelize.fn('JSON_CONTAINS', Sequelize.col('valores_do_produto'), `"${val}"`), 1
-                        ))
-                    }
-                },
-            });
-        }
+    // Filtra os IDs antes da paginação e preserva todas as associações na resposta.
+    for (const [key, value] of Object.entries(query)) {
+      if (!key.startsWith('option[')) continue;
+      const matchOption = /^option\[([1-9]\d*)\]$/.exec(key);
+      if (!matchOption || typeof value !== 'string' || !value.trim()) {
+        throw new Error('Filtro de opção inválido.');
+      }
+      const optionId = Number(matchOption[1]);
+      if (!Number.isSafeInteger(optionId)) throw new Error('ID da opção inválido.');
+      const optionValues = value.split(',').map(item => item.trim());
+      if (optionValues.some(item => !item)) throw new Error('Valor da opção inválido.');
+      const options = await ProductOption.findAll({
+        attributes: ['product_id'], raw: true,
+        where: {
+          id: optionId,
+          [Op.and]: Sequelize.where(
+            Sequelize.cast(Sequelize.col('valores_do_produto'), 'jsonb'),
+            { [Op.contains]: Sequelize.cast(JSON.stringify(optionValues), 'jsonb') }
+          ),
+        },
+      });
+      const predicates = findOptions.where[Op.and] || [];
+      predicates.push({ id: { [Op.in]: options.map(option => option.product_id) } });
+      findOptions.where[Op.and] = predicates;
     }
-
     findOptions.include.push(
         { model: ProductImage, as: 'images', attributes: ['id', 'path'] },
         { model: ProductOption, as: 'options' },
@@ -84,7 +85,7 @@ class ProductService {
         };
     });
 
-    return { data, total: count, limit: limit === '-1' ? count : parseInt(limit), page: limit === '-1' ? 1 : parseInt(page) };
+    return { data, total: count, limit: limit === -1 ? count : parseInt(limit), page: limit === -1 ? 1 : parseInt(page) };
   }
 
   /**
@@ -146,7 +147,7 @@ class ProductService {
         return product;
     } catch (error) {
         await transaction.rollback();
-        console.error('Falha na criação do produto:', error);
+        logger.warn({ errorMessage: error.message }, 'product_create_failed');
         throw error;
     }
   }
@@ -216,7 +217,7 @@ class ProductService {
 
     } catch (error) {
         await transaction.rollback();
-        console.error('Falha na atualização do produto:', error);
+        logger.warn({ errorMessage: error.message }, 'product_update_failed');
         throw error;
     }
   }
