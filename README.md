@@ -2,13 +2,22 @@ Projeto B — Geração Tech 4.0 Full Cycle
 
 # API de catálogo GT4
 
+[Repositório GT4](https://github.com/PauloVianaTech/projeto-backend-gt4) · [GitHub Actions](https://github.com/PauloVianaTech/projeto-backend-gt4/actions)
+
 API de domínio único para gerenciar catálogo de produtos, com categorias e autenticação administrativa de apoio. Evolução individual do [backend GT3](https://github.com/PauloVianaTech/projeto-backend-gt3), com histórico preservado.
 
 Fluxo principal: cadastrar usuário administrador, autenticar, criar categoria e produto, consultar e atualizar o produto. Sem pedidos, pagamentos ou frontend na entrega.
 
 ## Subir a aplicação
 
-Pré-requisitos: Docker Desktop com motor Linux em execução, Docker Compose e Node.js 22.13 ou superior. Depois de obter o repositório, entre em sua pasta e gere a configuração local uma única vez:
+Pré-requisitos: Docker Desktop com motor Linux em execução, Docker Compose e Node.js 22.13 ou superior. Clone o repositório:
+
+```sh
+git clone https://github.com/PauloVianaTech/projeto-backend-gt4.git
+cd projeto-backend-gt4
+```
+
+Gere a configuração local uma única vez:
 
 ```sh
 node scripts/setup-local.js
